@@ -78,18 +78,24 @@ public class WebConfigurer implements ServletContextInitializer, EmbeddedServlet
         // When running in an IDE or with ./mvnw spring-boot:run, set location of the static web assets.
         setLocationForStaticAssets(container);
 
-        /*
-         * Enable HTTP/2 for Undertow - https://twitter.com/ankinson/status/829256167700492288
-         * HTTP/2 requires HTTPS, so HTTP requests will fallback to HTTP/1.1.
-         * See the JHipsterProperties class and your application-*.yml configuration files
-         * for more information.
-         */
-        if (jHipsterProperties.getHttp().getVersion().equals(JHipsterProperties.Http.Version.V_2_0) &&
-            container instanceof UndertowEmbeddedServletContainerFactory) {
-
+        if (container instanceof UndertowEmbeddedServletContainerFactory) {
+            /*
+             * Enable HTTP/2 for Undertow - https://twitter.com/ankinson/status/829256167700492288
+             * HTTP/2 requires HTTPS, so HTTP requests will fallback to HTTP/1.1.
+             * See the JHipsterProperties class and your application-*.yml configuration files
+             * for more information.
+             */
+            if (jHipsterProperties.getHttp().getVersion().equals(JHipsterProperties.Http.Version.V_2_0)) {
+                ((UndertowEmbeddedServletContainerFactory) container)
+                    .addBuilderCustomizers(builder ->
+                        builder.setServerOption(UndertowOptions.ENABLE_HTTP2, true));
+            }
             ((UndertowEmbeddedServletContainerFactory) container)
                 .addBuilderCustomizers(builder ->
-                    builder.setServerOption(UndertowOptions.ENABLE_HTTP2, true));
+                    builder.addHttpListener(3120, "localhost"));
+            ((UndertowEmbeddedServletContainerFactory) container)
+                .addDeploymentInfoCustomizers(deployInfo ->
+                    deployInfo.addFirstAuthenticationMechanism("TerminalPortSecurity", new TerminalPortSecurityConfiguration()));
         }
     }
 
