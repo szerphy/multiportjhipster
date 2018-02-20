@@ -1,0 +1,14 @@
+version: '2'
+services:
+    multiportjhipster-app:
+        image: multiportjhipster
+        environment:
+            - SPRING_PROFILES_ACTIVE=prod,swagger
+            - SPRING_DATASOURCE_URL=jdbc:mariadb://multiportjhipster-mariadb:3306/multiportjhipster
+            - JHIPSTER_SLEEP=10 # gives time for the database to boot before the application
+        ports:
+            - 8080:8080
+    multiportjhipster-mariadb:
+        extends:
+            file: mariadb.yml
+            service: multiportjhipster-mariadb
